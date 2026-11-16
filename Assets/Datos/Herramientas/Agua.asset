@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22b68fcae11b99449b2c886776e717e1, type: 3}
+  m_Name: Agua
+  m_EditorClassIdentifier: Assembly-CSharp::HerramientaData
+  tipo: 0
+  nombre: Botella de agua
+  icono: {fileID: 0}
+  color: {r: 0.3, g: 0.7, b: 1, a: 1}
+  alcance: 3
+  aperturaCono: 45
+  radioRayo: 0.35
+  capaObjetivos:
+    serializedVersion: 2
+    m_Bits: 0
+  recarga: 0.4
+  municionMax: 6
+  segundosPorRelleno: 0.4
+  verguenza: 0
+  frenarSegundos: 1
+  sonidoUso: {fileID: 0}
+  sonidoVacio: {fileID: 0}
+  sonidoRelleno: {fileID: 0}
+  volumen: 1
+  materialEfecto: {fileID: 2100000, guid: d42ac14090776ec47bfd6d3248441445, type: 2}
+  efectoPrefab: {fileID: 0}
