@@ -1,8 +1,25 @@
-# Recorrido virtual – Edificio Univalle
+# ¡No te me colés!
 
 **Proyecto final de la asignatura Videojuegos.**
 
-Proyecto de Unity con un recorrido en primera persona por un edificio del campus de la Universidad del Valle (Cali, Colombia).
+Juego 3D hecho en Unity. De 10:00 a 12:00, la fila del restaurante universitario es un campo de batalla: eres el estudiante que madrugó a hacer fila y tu misión es que se cuele la menor cantidad de gente antes de que suene el timbre. Lees las señales de cada colado, actúas antes de que se acomode y gestionas tus herramientas.
+
+| | |
+|---|---|
+| **Género** | Acción táctica / gestión de tiempo con elementos de *tower defense* y deducción |
+| **Vista** | 3D isométrica, en un edificio del campus de la Universidad del Valle (Cali, Colombia) |
+| **Partida** | 4 minutos reales = 2 horas de juego (10:00 → 12:00) |
+| **Plataforma** | PC (teclado y mouse) |
+
+**La regla de oro:** un colado solo es vulnerable mientras se está metiendo en la fila; cuando ya quedó adentro, es intocable. Cada facultad tiene su señal (*tell*), su herramienta que la saca (*counter*) y una que no le hace nada. Y cuidado: entre 30 % y 50 % de los que llegan son inocentes, y atacarlos agota la paciencia de la fila.
+
+## Equipo
+
+| Integrante | Parte del juego |
+|---|---|
+| Carlos | Jugador, cámara y herramientas (agua, megáfono) |
+| Saldaña | Estudiantes, máquina de estados, fila y oleadas |
+| Héctor | Partida, interfaz (HUD, resultados) y arte; autor del documento de diseño (GDD) |
 
 ## Créditos del modelo 3D
 
@@ -20,42 +37,48 @@ Todo el mérito del modelado le corresponde a su autor. Muchas gracias a Cristia
 - Se tomó **solo un edificio** del modelo completo del campus (grupo `Group 3876` del archivo original); el resto del campus no se incluye.
 - Se convirtió a un prefab de Unity con mallas y materiales propios (`Assets/Edificio`).
 - Se cambiaron los colores de los materiales (concreto, ladrillo, metal y vidrio) y se agregaron colisiones.
-- Se añadió un suelo de césped y un personaje en primera persona.
+- Se añadió un suelo de césped alrededor del edificio.
 
 ## Requisitos
 
 - **Unity 6** (versión `6000.6.3f1`) con **Universal Render Pipeline (URP)**
-- Paquete **Input System**
+- Paquetes **Input System** y **AI Navigation** (vienen en `Packages/manifest.json`)
 
 ## Cómo abrirlo
 
 1. Clona el repositorio.
 2. En **Unity Hub**: *Add → Add project from disk* y elige la carpeta del proyecto.
-3. Abre la escena `Assets/Scenes/SampleScene.unity`.
-4. Dale **Play**.
+3. Abre una escena y dale **Play**:
+   - `Assets/Scenes/SampleScene.unity`: el jugador y las herramientas, con objetivos de prueba.
+   - `Assets/Scenes/Escena_Saldana.unity`: los estudiantes que llegan por oleadas e intentan colarse en la fila.
 
 ## Controles
 
-| Tecla | Acción |
+| Entrada | Acción |
 |---|---|
-| W A S D | Caminar |
-| Mouse | Mirar |
-| Shift | Correr |
-| Espacio | Saltar |
-| Esc | Soltar el mouse (clic para volver a capturarlo) |
+| W A S D / flechas | Moverse |
+| Mouse | Apuntar (el personaje mira al punto del piso) |
+| Clic izquierdo | Usar herramienta |
+| 1 = agua, 2 = megáfono / rueda | Cambiar herramienta |
 
 ## Estructura del proyecto
 
 ```
 Assets/
-├── Edificio/          Prefab del edificio, mallas, materiales y suelo
-├── Scenes/            Escena principal (SampleScene)
-├── Scripts/           JugadorPrimeraPersona.cs (control en primera persona)
-├── Editor/            UnivalleTools.cs (herramientas usadas para extraer el edificio)
+├── Edificio/          Prefab del edificio (modelo de Cristian C.), mallas y materiales
+├── Scenes/            SampleScene (jugador y herramientas) y Escena_Saldana (estudiantes y fila)
+├── Scripts/
+│   ├── Jugador/       Movimiento isométrico y cámara (Carlos)
+│   ├── Herramientas/  Agua, megáfono, bebedero y contrato con los estudiantes (Carlos)
+│   ├── Estudiantes/   Estudiante, fila, facultades y spawner por fases (Saldaña)
+│   └── Pruebas/       Objetivos y HUD provisionales
+├── Datos/             ScriptableObjects de balance (herramientas, jugador, estudiantes)
+├── Prefabs/           Estudiante y objetos de los tells
+├── Editor/            Herramientas de editor (menús "No te me colés" y "Univalle")
 └── Settings/          Configuración de URP (calidad, sombras, anti-aliasing)
 ```
 
-El menú **Univalle** dentro de Unity (de `Assets/Editor/UnivalleTools.cs`) contiene las herramientas que se usaron para separar el edificio del modelo del campus, poner el suelo, las colisiones y el jugador.
+El menú **Univalle** (de `Assets/Editor/UnivalleTools.cs`) contiene las herramientas que se usaron para separar el edificio del modelo del campus y prepararlo. El menú **No te me colés** tiene las herramientas de cada integrante para montar y probar su parte.
 
 ## Jugador y herramientas (Carlos)
 
