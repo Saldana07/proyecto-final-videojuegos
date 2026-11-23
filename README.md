@@ -126,3 +126,42 @@ Para Derecho ("argumenta"): `impacto.usuario.GetComponent<CinturonHerramientas>(
 | Mouse | Apuntar (el personaje mira al punto del piso) |
 | Clic izquierdo | Usar herramienta |
 | 1–5 / rueda | Cambiar herramienta |
+
+## Estudiantes y fila (Saldaña)
+
+Implementa la parte de Saldaña del reparto del GDD (sección 14.3): la fila, la máquina de estados de los estudiantes, las facultades Sistemas y Artes, los inocentes y el spawner por fases. Se prueba en su propia escena, `Assets/Scenes/Escena_Saldana.unity`, para no chocar con la `SampleScene`.
+
+| Script | Para qué |
+|---|---|
+| `Scripts/Estudiantes/EstadoEstudiante.cs` | Enums del contrato 14.4: `EstadoEstudiante` y `TipoInocente` |
+| `Scripts/Estudiantes/Estudiante.cs` | Máquina de estados Merodeo → Aproximación → Intento → Asegurado / Expulsado / Desistido; implementa `IReceptorHerramienta` de Carlos; Vergüenza individual; eventos para Héctor |
+| `Scripts/Estudiantes/FacultadData.cs` | ScriptableObject por facultad: tell, counter, resistencia, tiempo de Intento, velocidad |
+| `Scripts/Estudiantes/ConfigEstudiantes.cs` | ScriptableObject con el balance común (decaimiento de Vergüenza 10/s, Aproximación 3 s, radios de disuasión) |
+| `Scripts/Estudiantes/Fila.cs` | Puestos, huecos visibles, reservas, ida al baño, abandono y compactación; zona caliente delante del puesto del jugador |
+| `Scripts/Estudiantes/SpawnerEstudiantes.cs` | Llegadas por las 5 fases de la sección 5 del GDD (Calma → Estampida), 40 % de inocentes |
+
+Datos de balance en `Assets/Datos/Estudiantes/` (`ConfigEstudiantes`, `Sistemas`, `Artes`) y prefabs en `Assets/Prefabs/Estudiantes/`.
+
+### Cómo probarlo
+
+1. Menú **No te me colés → Saldaña → 2 - Crear escena de prueba**: crea los datos, el prefab, la escena con la fila, el spawner y el NavMesh.
+2. Dale **Play**. A los 3 s llega el primer colado.
+3. El colado da vueltas en la plazoleta, elige un hueco (disco amarillo en el piso), muestra su tell (Sistemas: celular y audífonos azules; Artes: maqueta naranja) con anillo **amarillo** (Aproximación), y luego se mete con anillo **rojo** (Intento).
+4. Sistemas cae con el **megáfono** (2) y Artes con el **agua** (1); la otra herramienta no les hace nada. Una vez dentro de la fila (Asegurado) ya no se puede sacar.
+5. Los inocentes no tienen tell ni anillo: atacarlos dispara `OnFalsoPositivo`.
+
+La etiqueta encima de cada uno (facultad, estado, Vergüenza) es para depurar; se apaga en `ConfigEstudiantes → mostrarEtiqueta`.
+
+### Para Héctor (eventos)
+
+```csharp
+Estudiante.OnExpulsado            += e => { /* +10 Dignidad; +2 Paciencia si e.EnZonaCaliente */ };
+Estudiante.OnDesistido            += e => { /* +5 Dignidad */ };
+Estudiante.OnAsegurado            += e => { /* +1 infiltrado; delante si e.EnZonaCaliente; +10 Escándalo */ };
+Estudiante.OnFalsoPositivo        += e => { /* −15 Paciencia */ };
+Estudiante.OnActuoSobreAsegurado  += e => { /* −5 Paciencia */ };
+SpawnerEstudiantes.RelojExterno    = () => segundosDePartida;   // usar el reloj del GameManager
+SpawnerEstudiantes.OnCambioFase   += fase => { /* fase.nombre para el HUD */ };
+```
+
+Cada `Estudiante` expone `Estado`, `Verguenza` (0–100, para la barra sobre el colado) y `ProgresoIntento` (0–1).
