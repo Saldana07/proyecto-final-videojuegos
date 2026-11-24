@@ -35,6 +35,14 @@ public class CamaraIsometrica : MonoBehaviour
     public float intervalo = 0.08f;
 
     readonly List<Renderer> piezas = new();
+    // Optimización (Héctor): el edificio es estático, así que sus bounds se calculan una sola vez,
+    // ordenados de más alto a más bajo para cortar el recorrido apenas una pieza queda por debajo.
+    Renderer[] piezasPorAltura = System.Array.Empty<Renderer>();
+    Bounds[] boundsPorAltura = System.Array.Empty<Bounds>();
+    readonly Dictionary<Collider, Renderer> rendererDe = new();
+    readonly RaycastHit[] golpes = new RaycastHit[256];
+    static readonly float[] AlturasVision = { 1.0f, 1.8f };
+    Camera cam;
     readonly HashSet<Renderer> ocultas = new();
     readonly HashSet<Renderer> nuevas = new();
     readonly Dictionary<Renderer, ShadowCastingMode> sombraOriginal = new();
@@ -58,8 +66,9 @@ public class CamaraIsometrica : MonoBehaviour
             if (e != null) edificio = e.transform;
         }
         if (edificio != null) piezas.AddRange(edificio.GetComponentsInChildren<Renderer>());
+        PrecalcularPiezas();
 
-        var cam = GetComponent<Camera>();
+        cam = GetComponent<Camera>();
         cam.orthographic = true;
         cam.orthographicSize = tamano;
         ConfigurarCalidad(cam);
@@ -89,7 +98,8 @@ public class CamaraIsometrica : MonoBehaviour
         Vector3 pos = objetivo.position + Vector3.up - rot * Vector3.forward * distancia;
         transform.SetPositionAndRotation(
             inmediato ? pos : Vector3.SmoothDamp(transform.position, pos, ref vel, suavizado), rot);
-        GetComponent<Camera>().orthographicSize = tamano;
+        if (cam == null) cam = GetComponent<Camera>();
+        if (cam.orthographicSize != tamano) cam.orthographicSize = tamano;
     }
 
     void ActualizarOcultas()
@@ -101,14 +111,14 @@ public class CamaraIsometrica : MonoBehaviour
         // 1. Todo lo que tapa la línea de visión (cuerpo y cabeza del jugador).
         Vector3 haciaCamara = -transform.forward;
         int mascara = ~(Capas.MascaraJugador | Capas.MascaraEstudiante);
-        foreach (var altura in new[] { 1.0f, 1.8f })
+        foreach (var altura in AlturasVision)
         {
-            var hits = Physics.SphereCastAll(pies + Vector3.up * altura, radioVision, haciaCamara, distancia, mascara, QueryTriggerInteraction.Ignore);
-            foreach (var h in hits)
+            int n = Physics.SphereCastNonAlloc(pies + Vector3.up * altura, radioVision, haciaCamara, golpes, distancia, mascara, QueryTriggerInteraction.Ignore);
+            for (int i = 0; i < n; i++)
             {
+                var h = golpes[i];
                 if (h.distance <= 0f) continue;                    // ya tocaba al empezar (piso bajo los pies)
-                var r = h.collider.GetComponent<Renderer>();
-                if (r == null || !r.transform.IsChildOf(edificio)) continue;
+                if (!rendererDe.TryGetValue(h.collider, out var r) || r == null) continue;   // solo piezas del edificio
                 if (r.bounds.max.y < pies.y + 0.3f) continue;      // pisos y andenes: nunca se ocultan
                 nuevas.Add(r);
             }
@@ -117,14 +127,13 @@ public class CamaraIsometrica : MonoBehaviour
         // 2. Techos y pisos superiores cercanos.
         float corteY = pies.y + alturaCorte;
         float r2 = radioCorte * radioCorte;
-        foreach (var r in piezas)
+        for (int i = 0; i < boundsPorAltura.Length; i++)
         {
-            if (r == null) continue;
-            Bounds b = r.bounds;
-            if (b.min.y < corteY) continue;
+            Bounds b = boundsPorAltura[i];
+            if (b.min.y < corteY) break;                           // ordenadas: las que siguen son más bajas
             float dx = Mathf.Max(b.min.x - pies.x, 0f, pies.x - b.max.x);
             float dz = Mathf.Max(b.min.z - pies.z, 0f, pies.z - b.max.z);
-            if (dx * dx + dz * dz <= r2) nuevas.Add(r);
+            if (dx * dx + dz * dz <= r2 && piezasPorAltura[i] != null) nuevas.Add(piezasPorAltura[i]);
         }
 
         foreach (var r in ocultas)
@@ -134,6 +143,20 @@ public class CamaraIsometrica : MonoBehaviour
 
         ocultas.Clear();
         ocultas.UnionWith(nuevas);
+    }
+
+    void PrecalcularPiezas()
+    {
+        rendererDe.Clear();
+        var validas = piezas.FindAll(r => r != null);
+        validas.Sort((a, b) => b.bounds.min.y.CompareTo(a.bounds.min.y));
+        piezasPorAltura = validas.ToArray();
+        boundsPorAltura = new Bounds[piezasPorAltura.Length];
+        for (int i = 0; i < piezasPorAltura.Length; i++)
+        {
+            boundsPorAltura[i] = piezasPorAltura[i].bounds;
+            foreach (var c in piezasPorAltura[i].GetComponents<Collider>()) rendererDe[c] = piezasPorAltura[i];
+        }
     }
 
     void Ocultar(Renderer r)
