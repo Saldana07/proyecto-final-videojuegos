@@ -219,7 +219,7 @@ public static class UnivalleTools
         Undo.RegisterCreatedObjectUndo(jugador, "Crear jugador");
 
         // Apaga la camara original para que no haya dos
-        foreach (var c in Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+        foreach (var c in Object.FindObjectsByType<Camera>(FindObjectsInactive.Exclude))
             if (c != cam) { Undo.RecordObject(c.gameObject, "Apagar camara"); c.gameObject.SetActive(false); }
 
         var escena = jugador.scene;
