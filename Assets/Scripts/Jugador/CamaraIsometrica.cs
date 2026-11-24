@@ -30,6 +30,9 @@ public class CamaraIsometrica : MonoBehaviour
     public float alturaCorte = 2.6f;
     [Tooltip("Radio alrededor del jugador donde se ocultan techos y pisos de arriba.")]
     public float radioCorte = 14f;
+    [Tooltip("Héctor: los techos y pisos de arriba solo se ocultan si el jugador tiene un techo encima. " +
+             "Sin esto, al caminar por la plazoleta el edificio se iba borrando por pedazos.")]
+    public bool soloBajoTecho = true;
     [Tooltip("Si está activo las piezas ocultas siguen proyectando sombra.")]
     public bool conservarSombras = false;
     public float intervalo = 0.08f;
@@ -124,8 +127,9 @@ public class CamaraIsometrica : MonoBehaviour
             }
         }
 
-        // 2. Techos y pisos superiores cercanos.
-        float corteY = pies.y + alturaCorte;
+        // 2. Techos y pisos superiores cercanos (solo si el jugador está bajo techo).
+        bool bajoTecho = !soloBajoTecho || BajoTecho(pies, mascara);
+        float corteY = bajoTecho ? pies.y + alturaCorte : float.MaxValue;
         float r2 = radioCorte * radioCorte;
         for (int i = 0; i < boundsPorAltura.Length; i++)
         {
@@ -143,6 +147,15 @@ public class CamaraIsometrica : MonoBehaviour
 
         ocultas.Clear();
         ocultas.UnionWith(nuevas);
+    }
+
+    // ¿Hay una pieza del edificio justo encima del jugador?
+    bool BajoTecho(Vector3 pies, int mascara)
+    {
+        int n = Physics.RaycastNonAlloc(pies + Vector3.up * 0.5f, Vector3.up, golpes, 15f, mascara, QueryTriggerInteraction.Ignore);
+        for (int i = 0; i < n; i++)
+            if (rendererDe.ContainsKey(golpes[i].collider)) return true;
+        return false;
     }
 
     void PrecalcularPiezas()
