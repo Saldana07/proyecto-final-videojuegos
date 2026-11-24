@@ -56,6 +56,9 @@ public class Estudiante : MonoBehaviour, IReceptorHerramienta
     bool entrando;
     Vector3 inicioIntento;
     Vector3 salida;
+    // Optimización (Héctor): solo se toca el material y la etiqueta cuando algo cambia.
+    Color colorPintado = new Color(-1f, -1f, -1f, -1f);
+    int claveEtiqueta = int.MinValue;
 
     ConfigEstudiantes Cfg
     {
@@ -459,6 +462,8 @@ public class Estudiante : MonoBehaviour, IReceptorHerramienta
         Color c = colorCuerpo;
         if (Time.time < frenadoHasta) c = Color.Lerp(c, Color.cyan, 0.6f);
         if (destello > 0f) c = Color.white;
+        if (c == colorPintado) return;
+        colorPintado = c;
         cuerpo.GetPropertyBlock(bloque);
         bloque.SetColor(IdBaseColor, c);
         bloque.SetColor(IdColor, c);
@@ -485,9 +490,14 @@ public class Estudiante : MonoBehaviour, IReceptorHerramienta
         bool ver = Cfg.mostrarEtiqueta;
         if (etiqueta.gameObject.activeSelf != ver) etiqueta.gameObject.SetActive(ver);
         if (!ver) return;
-        etiqueta.text = EsInocente
+        int clave = ((int)Estado * 1000 + Mathf.RoundToInt(Verguenza)) * 8 + (int)tipoInocente;
+        if (clave != claveEtiqueta)
+        {
+            claveEtiqueta = clave;
+            etiqueta.text = EsInocente
             ? $"Inocente\n{tipoInocente}"
             : $"{(facultad != null ? facultad.nombre : "Colado")}\n{Estado}  V {Verguenza:0}";
+        }
         var cam = Camera.main;
         if (cam != null) etiqueta.transform.rotation = cam.transform.rotation;
     }
