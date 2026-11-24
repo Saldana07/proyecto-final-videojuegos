@@ -51,6 +51,7 @@ Todo el mérito del modelado le corresponde a su autor. Muchas gracias a Cristia
 3. Abre una escena y dale **Play**:
    - `Assets/Scenes/SampleScene.unity`: el jugador y las herramientas, con objetivos de prueba.
    - `Assets/Scenes/Escena_Saldana.unity`: los estudiantes que llegan por oleadas e intentan colarse en la fila.
+   - **`Assets/Scenes/Escena_Juego.unity`: el juego completo** (todo lo anterior + partida, HUD, resultados y audio).
 
 ## Controles
 
@@ -66,11 +67,13 @@ Todo el mérito del modelado le corresponde a su autor. Muchas gracias a Cristia
 ```
 Assets/
 ├── Edificio/          Prefab del edificio (modelo de Cristian C.), mallas y materiales
-├── Scenes/            SampleScene (jugador y herramientas) y Escena_Saldana (estudiantes y fila)
+├── Scenes/            Escena_Juego (el juego completo), SampleScene (Carlos) y Escena_Saldana (Saldaña)
+├── Audio/             Sonidos sintetizados del juego (Héctor)
 ├── Scripts/
 │   ├── Jugador/       Movimiento isométrico y cámara (Carlos)
 │   ├── Herramientas/  Agua, megáfono, bebedero y contrato con los estudiantes (Carlos)
 │   ├── Estudiantes/   Estudiante, fila, facultades y spawner por fases (Saldaña)
+│   ├── Partida/       GameManager, HUD, resultados, audio, letreros y rendimiento (Héctor)
 │   └── Pruebas/       Objetivos y HUD provisionales
 ├── Datos/             ScriptableObjects de balance (herramientas, jugador, estudiantes)
 ├── Prefabs/           Estudiante y objetos de los tells
@@ -188,3 +191,66 @@ SpawnerEstudiantes.OnCambioFase   += fase => { /* fase.nombre para el HUD */ };
 ```
 
 Cada `Estudiante` expone `Estado`, `Verguenza` (0–100, para la barra sobre el colado) y `ProgresoIntento` (0–1).
+
+## Partida, interfaz, resultados y audio (Héctor)
+
+Implementa la parte de Héctor del reparto del GDD (sección 14.3): el GameManager con el reloj de 10:00 a 12:00, la Paciencia de la fila, el Escándalo y la Dignidad; el HUD; las pantallas de inicio, pausa y resultados; el audio; los letreros de la fila, y la optimización para llegar a 60 FPS o más. Todo se junta en la escena **`Assets/Scenes/Escena_Juego.unity`**, que es la escena del juego (la primera del Build).
+
+| Script | Para qué |
+|---|---|
+| `Scripts/Partida/PartidaManager.cs` | GameManager: intro → jugando → pausa → terminada. Reloj de 240 s, fases, Paciencia, Escándalo, Dignidad, derrota y timbre. Escucha los eventos del `Estudiante` (contrato 14.4) y le da el reloj al spawner de Saldaña |
+| `Scripts/Partida/PartidaConfig.cs` | ScriptableObject con todo el balance de la partida (`Assets/Datos/Partida/PartidaConfig`) |
+| `Scripts/Partida/Puntaje.cs` | Fórmulas del GDD 10: Efectividad, rango, bono de Dignidad, hora de almuerzo |
+| `Scripts/Partida/HUDPartida.cs` | HUD (reloj, barras, contadores, herramientas con recarga circular, Vergüenza e Intento sobre cada colado, flechas a colados fuera de pantalla, avisos) y pantallas de inicio, pausa y resultados |
+| `Scripts/Partida/UIFabrica.cs` | Arma la interfaz en código (uGUI), sin prefabs que choquen en Git |
+| `Scripts/Partida/AudioPartida.cs` | Sonidos en 2D: agua, megáfono, relleno, sin munición, expulsado, falso positivo, colado y timbre |
+| `Scripts/Partida/MarcadoresFila.cs` | Arte de la fila: zona caliente pintada en el piso, "TU PUESTO #40" y la puerta del restaurante |
+| `Scripts/Partida/MedidorRendimiento.cs` | FPS en pantalla (F3) e informe `Logs/rendimiento_*.txt` al terminar cada partida |
+| `Scripts/Partida/TelemetriaPartida.cs` | Telemetría CSV del GDD: `Logs/telemetria_*.csv` con cada cambio de estado e impacto |
+| `Editor/Hector/HectorPartidaEditor.cs` | Menú **No te me colés → Héctor** (ver abajo) |
+
+Los sonidos de `Assets/Audio` son sintetizados por nosotros (no tienen licencia de terceros).
+
+### Cómo probarlo
+
+1. **No te me colés → Héctor → 1 - Crear escena de juego**: copia `Escena_Saldana` (que ya trae lo de Carlos) en `Escena_Juego` y le agrega la partida. Si `Escena_Juego` ya existe, solo rehace el grupo `Partida (Héctor)`.
+2. **4 - Jugar** (o abrir `Escena_Juego` y dar Play). Clic o Enter para empezar.
+3. **3 - Autoprueba de la partida**: 25 comprobaciones de las fórmulas y de la lógica (resultado en la consola y en `Logs/autoprueba_hector.txt`).
+
+| Entrada | Acción |
+|---|---|
+| Esc / P | Pausa (Seguir, Reiniciar, Salir) |
+| R | Reiniciar en la pausa o en los resultados |
+| F3 | Mostrar FPS, CPU, GPU, SetPass y sombras |
+| F4 *(solo editor o build de desarrollo)* | Tiempo x3 |
+| F5 *(depuración)* | Terminar la partida ya (timbre) |
+| F6 / F7 *(depuración)* | Usar la herramienta actual contra el colado / el inocente más cercano (si está a tiro) |
+
+### Reglas implementadas (GDD 6 y 10)
+
+- **Paciencia** empieza en 100: −15 por falso positivo, −5 por actuar sobre un Asegurado, +2 por expulsar a un colado que iba a la zona caliente. En 0 la fila **te saca a ti**: derrota.
+- **Escándalo** +10 por cada colado que se asegura en la zona caliente (el Vigilante queda para después del 30 %).
+- **Dignidad** +10 por expulsado, +5 por desistido y el bono del rango al final (S 100, A 60, B 30, C 10).
+- **Efectividad** = frustrados / (frustrados + infiltrados) × 100 − 5 × falsos positivos. **Rango** S (≥ 95 % y 0 falsos positivos), A ≥ 85, B ≥ 70, C ≥ 50, D.
+- **Hora de almuerzo** = 0,5 min × (puesto + infiltrados delante). El protagonista es el #40 (puesto 11 de la fila + 29 que ya van adentro).
+- Al sonar el timbre (o con la derrota) la acción se congela y salen los resultados.
+
+### Rendimiento (meta: 60 FPS o más)
+
+**No te me colés → Héctor → 2 - Optimizar rendimiento** deja los ajustes en `Settings/PC_RPAsset` y `PC_Renderer` (también quedan en `Logs/optimizacion_hector.txt`):
+
+| Ajuste | Antes | Después | Por qué |
+|---|---|---|---|
+| Distancia de sombras | 120 m | 55 m | Con la cámara a 35 m el piso visible está entre ~20 y ~52 m |
+| Cascadas de sombra | 4 | 1 | La cámara ortográfica ve todo a una profundidad parecida |
+| Mapa de sombras | 4096 | 2048 | Alcanza para 55 m |
+| SSAO | encendido | apagado | Redibujaba las ~3.800 piezas del edificio en un pase extra |
+| MSAA | 4x | apagado | La cámara ya usa SMAA: era antialiasing doble |
+| Texturas de color y profundidad | encendidas | apagadas | Ningún efecto las usa |
+| Cámara isométrica (`distancia`) | 60 m | 35 m | Mismo encuadre ortográfico, sombras más cortas |
+
+También se optimizó código sin cambiar comportamiento: `CamaraIsometrica` calcula los bounds del edificio una sola vez (ordenados por altura) y usa `SphereCastNonAlloc`; `Estudiante` solo repinta su material y rearma su etiqueta cuando algo cambia. **Cámara en `Escena_Juego`:** `tamano` 8 (antes 10, más cerca del jugador) y `radioCorte` 8 (antes 14). `CamaraIsometrica` tiene la opción nueva `soloBajoTecho` (activa): los techos y pisos de arriba solo se ocultan cuando el jugador tiene un techo encima; antes se ocultaban también con el jugador afuera, en la plazoleta, y el edificio se veía desaparecer por partes.
+
+`Escena_Juego` usa una copia de `ConfigEstudiantes` (`ConfigEstudiantes_Juego`) con las etiquetas de depuración apagadas; `Escena_Saldana` sigue igual.
+
+**5 - Build de prueba de rendimiento** compila el juego para Windows en `Builds/Windows` (ignorada por Git) y lo ejecuta en modo prueba: si junto al `.exe` existe `prueba_rendimiento.txt`, la partida arranca sola, dura los 240 s, guarda `Logs/rendimiento_*.txt` junto al `.exe` y se cierra. Para jugar normal con esa build, borra ese archivo.
