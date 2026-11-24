@@ -77,11 +77,10 @@ Assets/
 │   └── Pruebas/       Objetivos y HUD provisionales
 ├── Datos/             ScriptableObjects de balance (herramientas, jugador, estudiantes)
 ├── Prefabs/           Estudiante y objetos de los tells
-├── Editor/            Herramientas de editor (menús "No te me colés" y "Univalle")
 └── Settings/          Configuración de URP (calidad, sombras, anti-aliasing)
 ```
 
-El menú **Univalle** (de `Assets/Editor/UnivalleTools.cs`) contiene las herramientas que se usaron para separar el edificio del modelo del campus y prepararlo. El menú **No te me colés** tiene las herramientas de cada integrante para montar y probar su parte.
+Las herramientas de editor que se usaron para separar el edificio del modelo del campus y para montar las escenas (menús **Univalle** y **No te me colés**) se retiraron al cerrar la entrega, porque las escenas ya quedaron guardadas. Siguen disponibles en el historial de Git si se necesitan.
 
 ## Jugador y herramientas (Carlos)
 
@@ -109,7 +108,7 @@ Datos de balance en `Assets/Datos/` (`Jugador/JugadorConfig`, `Herramientas/Agua
 
 ### Dónde están los objetivos
 
-Se ubicaron con **No te me colés → Carlos → Analizar estructura del edificio**, que recorre la planta baja con rayos y guarda un mapa de dónde se puede caminar en `Logs/analisis_edificio.txt`. La planta baja (y≈0) es abierta, con columnas cada ~7 m; hay un segundo piso (y≈3,5) y un techo (y≈7).
+Se ubicaron recorriendo la planta baja del edificio con rayos para saber dónde se puede caminar. La planta baja (y≈0) es abierta, con columnas cada ~7 m; hay un segundo piso (y≈3,5) y un techo (y≈7).
 
 - **Fila de inocentes** (grises): vestíbulo sur techado, z≈58,5, de x 219 a 236, con un hueco libre.
 - **Sistemas** (azules, counter megáfono): dos en la plazoleta llegando a la fila y uno en el corredor interior.
@@ -122,8 +121,6 @@ Se ubicaron con **No te me colés → Carlos → Analizar estructura del edifici
 1. Abre `Assets/Scenes/SampleScene.unity` y dale **Play**.
 2. **WASD** mueve (W = arriba en pantalla), el **mouse** apunta (marcador rojo en el piso), **1** = agua, **2** = megáfono, **clic** = usar.
 3. El HUD de abajo a la izquierda muestra munición y recarga; la consola, cada impacto.
-
-**2 - Integrar en SampleScene (isométrica)** vuelve a montar todo si se rompe. **3 - Autoprueba de herramientas** comprueba cono, alcance, munición, bebedero, cambio de herramienta y congelamiento. **Capturas de la vista isométrica** guarda imágenes en `Logs/` sin dar Play.
 
 ### Para Saldaña (contrato)
 
@@ -170,7 +167,7 @@ Datos de balance en `Assets/Datos/Estudiantes/` (`ConfigEstudiantes`, `Sistemas`
 
 ### Cómo probarlo
 
-1. Menú **No te me colés → Saldaña → 2 - Crear escena de prueba**: crea los datos, el prefab, la escena con la fila, el spawner y el NavMesh.
+1. Abre `Assets/Scenes/Escena_Saldana.unity` (trae la fila, el spawner y el NavMesh horneado).
 2. Dale **Play**. A los 3 s llega el primer colado.
 3. El colado da vueltas en la plazoleta, elige un hueco (disco amarillo en el piso), muestra su tell (Sistemas: celular y audífonos azules; Artes: maqueta naranja) con anillo **amarillo** (Aproximación), y luego se mete con anillo **rojo** (Intento).
 4. Sistemas cae con el **megáfono** (2) y Artes con el **agua** (1); la otra herramienta no les hace nada. Una vez dentro de la fila (Asegurado) ya no se puede sacar.
@@ -207,15 +204,13 @@ Implementa la parte de Héctor del reparto del GDD (sección 14.3): el GameManag
 | `Scripts/Partida/MarcadoresFila.cs` | Arte de la fila: zona caliente pintada en el piso, "TU PUESTO #40" y la puerta del restaurante |
 | `Scripts/Partida/MedidorRendimiento.cs` | FPS en pantalla (F3) e informe `Logs/rendimiento_*.txt` al terminar cada partida |
 | `Scripts/Partida/TelemetriaPartida.cs` | Telemetría CSV del GDD: `Logs/telemetria_*.csv` con cada cambio de estado e impacto |
-| `Editor/Hector/HectorPartidaEditor.cs` | Menú **No te me colés → Héctor** (ver abajo) |
 
 Los sonidos de `Assets/Audio` son sintetizados por nosotros (no tienen licencia de terceros).
 
 ### Cómo probarlo
 
-1. **No te me colés → Héctor → 1 - Crear escena de juego**: copia `Escena_Saldana` (que ya trae lo de Carlos) en `Escena_Juego` y le agrega la partida. Si `Escena_Juego` ya existe, solo rehace el grupo `Partida (Héctor)`.
-2. **4 - Jugar** (o abrir `Escena_Juego` y dar Play). Clic o Enter para empezar.
-3. **3 - Autoprueba de la partida**: 25 comprobaciones de las fórmulas y de la lógica (resultado en la consola y en `Logs/autoprueba_hector.txt`).
+1. Abre `Assets/Scenes/Escena_Juego.unity` (la escena de Saldaña, que ya trae lo de Carlos, más el grupo `Partida (Héctor)`).
+2. Dale **Play**. Clic o Enter para empezar.
 
 | Entrada | Acción |
 |---|---|
@@ -237,7 +232,7 @@ Los sonidos de `Assets/Audio` son sintetizados por nosotros (no tienen licencia 
 
 ### Rendimiento (meta: 60 FPS o más)
 
-**No te me colés → Héctor → 2 - Optimizar rendimiento** deja los ajustes en `Settings/PC_RPAsset` y `PC_Renderer` (también quedan en `Logs/optimizacion_hector.txt`):
+Los ajustes quedaron guardados en `Settings/PC_RPAsset` y `PC_Renderer`:
 
 | Ajuste | Antes | Después | Por qué |
 |---|---|---|---|
@@ -253,4 +248,4 @@ También se optimizó código sin cambiar comportamiento: `CamaraIsometrica` cal
 
 `Escena_Juego` usa una copia de `ConfigEstudiantes` (`ConfigEstudiantes_Juego`) con las etiquetas de depuración apagadas; `Escena_Saldana` sigue igual.
 
-**5 - Build de prueba de rendimiento** compila el juego para Windows en `Builds/Windows` (ignorada por Git) y lo ejecuta en modo prueba: si junto al `.exe` existe `prueba_rendimiento.txt`, la partida arranca sola, dura los 240 s, guarda `Logs/rendimiento_*.txt` junto al `.exe` y se cierra. Para jugar normal con esa build, borra ese archivo.
+**Modo prueba de rendimiento:** si junto al `.exe` de una build existe un archivo `prueba_rendimiento.txt`, la partida arranca sola, dura los 240 s, guarda `Logs/rendimiento_*.txt` junto al `.exe` y se cierra. Para jugar normal, borra ese archivo. En una build de Windows (RTX 4060 Laptop, 1920×1080) dio 303 FPS de promedio y 185 FPS en el 1 % más bajo.
