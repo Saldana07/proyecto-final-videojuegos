@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 656b3bfd2fe3d284badcd334a01c82ef, type: 3}
+  m_Name: ConfigEstudiantes_Juego
+  m_EditorClassIdentifier: Assembly-CSharp::ConfigEstudiantes
+  decaimientoVerguenza: 10
+  merodeoMin: 1.5
+  merodeoMax: 4
+  esperaMaxSinHueco: 8
+  radioDisuasionMerodeo: 2.5
+  tiempoAproximacion: 3
+  distanciaIntento: 2
+  radioDisuasionAproximacion: 1
+  velocidadHuida: 5
+  segundosParaDesaparecer: 4
+  velocidadInocente: 1.6
+  mostrarEtiqueta: 0
