@@ -74,7 +74,7 @@ public class PartidaManager : MonoBehaviour
 
     void Awake() => Inicializar();
 
-    // Público para la autoprueba del editor (allí no corre Awake).
+    // Público para poder inicializarlo fuera de Play (pruebas).
     public void Inicializar()
     {
         Instancia = this;
@@ -287,7 +287,7 @@ public class PartidaManager : MonoBehaviour
 
     bool Cuenta => Estado == EstadoPartida.Jugando;
 
-    // Públicos para la autoprueba, que los llama sin escena.
+    // Públicos para poder probarlos sin escena.
     public void AlExpulsado(Estudiante e)
     {
         if (!Cuenta) return;

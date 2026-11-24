@@ -1,7 +1,7 @@
 using UnityEngine;
 
 // Fórmulas de la pantalla de resultados (GDD 10). Dueño: Héctor.
-// Son funciones puras para poder probarlas sin escena (No te me colés → Héctor → 3 - Autoprueba).
+// Son funciones puras para poder probarlas sin escena.
 public static class Puntaje
 {
     public const string RangoDerrota = "Expulsado";

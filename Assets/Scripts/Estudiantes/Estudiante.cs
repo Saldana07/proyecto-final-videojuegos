@@ -400,7 +400,7 @@ public class Estudiante : MonoBehaviour, IReceptorHerramienta
         transform.position = pos;
         agente.enabled = true;
         if (agente.isOnNavMesh) agente.Warp(pos);
-        else Debug.LogWarning($"[Saldaña] '{name}' quedó fuera del NavMesh en {pos}. ¿Horneaste el NavMesh? (No te me colés → Saldaña → 3)", this);
+        else Debug.LogWarning($"[Saldaña] '{name}' quedó fuera del NavMesh en {pos}. ¿Horneaste el NavMesh? (objeto NavMesh → NavMeshSurface → Bake)", this);
     }
 
     void IrA(Vector3 destino)
